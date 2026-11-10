@@ -58,7 +58,7 @@ const ph=p=>p&&!/card|—/i.test(p)?p:'';
 function match(txt){return !st.q||txt.toLowerCase().includes(st.q)}
 function stats(){const us=D.dirs.filter(d=>d.us).length;$('#stats').innerHTML=
 `<div class="stat"><b>${D.dirs.length}</b><span>KH trong danh bạ</span></div><div class="stat"><b>${us}</b><span>KH có hàng đi Mỹ (danh bạ + booking)</span></div><div class="stat"><b>${D.rank.length}</b><span>KH đã bay 2026</span></div><div class="stat"><b>${D.total.lots}</b><span>Lô 2026</span></div><div class="stat"><b>${Math.round(D.total.us/D.total.lots*100)}%</b><span>Lô đi Mỹ</span></div>`}
-function top(){
+function renderTop(){
  let r=D.rank.filter(x=>(!st.us||x.us>0)&&match([x.label,x.dirname,x.pic,x.phone,x.dests.map(d=>d[0]).join(' ')].join(' ')));
  const k=st.sort;r=[...r].sort((a,b)=>(b[k]-a[k])||(b.lots-a.lots));
  const mx=Math.max(1,...r.map(x=>x[k]));
@@ -77,7 +77,7 @@ function leaf(d){
  ${d.other?`<div><b>Liên hệ khác:</b> ${esc(d.other)}</div>`:''}${d.goods&&d.goods!='—'?`<div><b>Hàng hay có / tải có:</b> ${esc(d.goods)}</div>`:''}
  ${d.booked?`<div><b>Booking Plan:</b> ${esc(d.booked)}</div>`:''}${d.note?`<div><b>Ghi chú:</b> ${esc(d.note)}</div>`:''}<div class="sub">Note gần nhất: ${esc(d.noted||'')} · ${esc(d.src||'')}</div></div></div>`}
 const catCls={'Khách (FWD/coloader có hàng)':'','Nguồn tải / GSA / BSA':'y','Chủ hàng trực tiếp':'g'};
-function tree(){
+function renderTree(){
  let list=D.dirs.filter(d=>(!st.us||d.us)&&(!st.bk||d.bk.length)&&(!st.cat||d.cat===st.cat)&&match([d.name,d.pic,d.phone,d.other,d.goods,d.note].join(' ')));
  let h='<div class="tree"><ul>';
  const groups=[...cats];
@@ -90,7 +90,7 @@ function tree(){
  const nd=D.rank.filter(x=>!x.stt&&(!st.us||x.us>0)&&match(x.label));
  if(nd.length)h+=`<li class="node cat p open"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="arr">▸</span><span class="t">Có trong Booking Plan 2026 nhưng CHƯA có trong danh bạ</span><span class="b" style="background:#fff;color:#111">${nd.length}</span></div><div class="kids"><ul>${nd.map(x=>`<div class="leaf"><div class="hd"><span class="t">${esc(x.label)}</span>${x.us?'<span class="b us">MỸ</span>':''}<span class="b bk">${x.lots} lô · ${fmt(x.cw)} kg</span><span class="sub">gần nhất ${x.last}</span></div></div>`).join('')}</ul></div></li>`;
  $('#v2').innerHTML=h+'</ul></div>'+(!list.length&&!nd.length?'<div class="empty">Không có kết quả</div>':'')}
-function render(){stats();top();tree();$('#fUS').classList.toggle('on',st.us);$('#fBK').classList.toggle('on',st.bk);
+function render(){stats();renderTop();renderTree();$('#fUS').classList.toggle('on',st.us);$('#fBK').classList.toggle('on',st.bk);
  $('#v1').style.display=st.tab==1?'':'none';$('#v2').style.display=st.tab==2?'':'none';$('#t1').classList.toggle('on',st.tab==1);$('#t2').classList.toggle('on',st.tab==2)}
 $('#q').oninput=e=>{st.q=e.target.value.trim().toLowerCase();render()};
 $('#fUS').onclick=()=>{st.us=!st.us;render()};$('#fBK').onclick=()=>{st.bk=!st.bk;if(st.bk)st.tab=2;render()};
