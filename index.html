@@ -39,7 +39,7 @@ a.tel,button.cp{color:#1F4E79;font-weight:700;text-decoration:none;border:1px so
 <header><h1>Khách hàng — Sơ đồ cây &amp; Top bay hàng</h1>
 <p>Danh bạ KH Zalo (cập nhật 03/11/2026) + Booking Plan 2025+2026 (đến <span id="today"></span>) + khách SQ T10, MAWB TK/UA, đăng ký kết nối, khách ICN, khách TPL, khách line KE (T1/2021). Ưu tiên tuyến Mỹ.</p>
 <div class="stats" id="stats"></div>
-<div class="bar"><input type="search" id="q" placeholder="Tìm tên, SĐT… hoặc điểm đến: lax, ord, icn… (gõ nhiều điểm cách nhau dấu cách)">
+<div class="bar"><input type="search" id="q" placeholder="Tìm tên, SĐT… hoặc điểm đến: lax, ord, icn… (gõ nhiều điểm cách nhau dấu cách) · gõ ke / sq / tk / tpl để lọc khách theo line">
 <button class="chip" id="fUS">🇺🇸 Chỉ khách đi Mỹ</button>
 <button class="chip" id="fBK">Đã book với mình</button><span id="yrs" style="display:flex;gap:4px"><button class="chip" data-y="all">2025+2026</button><button class="chip" data-y="y26">2026</button><button class="chip" data-y="y25">2025</button></span>
 <select id="fCat"><option value="">Mọi phân loại</option></select>
@@ -58,7 +58,7 @@ function parseQ(v){const toks=v.toLowerCase().split(/[\s,;]+/).filter(Boolean);s
 $('#today').textContent=D.today;
 const cats=[...new Set(D.dirs.map(d=>d.cat))];cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;$('#fCat').appendChild(o)});
 const ph=p=>p&&!/card|—/i.test(p)?p:'';
-function match(txt,dc){if(st.dq.length&&!(dc||[]).some(c=>st.dq.includes(c)))return false;if(!st.tq.length)return true;const l=txt.toLowerCase();return st.tq.every(t=>l.includes(t))}
+function match(txt,dc){if(st.dq.length&&!(dc||[]).some(c=>st.dq.includes(c)))return false;if(!st.tq.length)return true;const l=txt.toLowerCase();const W=l.split(/[^\p{L}\p{N}]+/u);return st.tq.every(t=>t.length<=2?W.includes(t):l.includes(t))}
 function stats(){const us=D.dirs.filter(d=>d.us).length;const ex=D.extra.reduce((n,g)=>n+g.items.length,0);const tl=D.rank.reduce((n,x)=>n+x.all.lots,0),tu=D.rank.reduce((n,x)=>n+x.all.us,0);$('#stats').innerHTML=
 `<div class="stat"><b>${D.dirs.length}</b><span>KH trong danh bạ Zalo</span></div><div class="stat"><b>${ex}</b><span>KH ở 6 nguồn thêm (đăng ký, SQ, TK/UA, ICN, TPL, KE)</span></div><div class="stat"><b>${D.rank.length}</b><span>KH đã bay 2025-26</span></div><div class="stat"><b>${tl}</b><span>Lô 2025-26</span></div><div class="stat"><b>${Math.round(tu/tl*100)}%</b><span>Lô đi Mỹ</span></div>`}
 function renderTop(){
@@ -92,7 +92,7 @@ function renderTree(){
   if(rest.length)h+=`<li class="node ${us.length?'':'open'}"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="arr">▸</span><span class="t">Tuyến khác / chưa rõ</span><span class="b bk">${rest.length}</span></div><div class="kids">${rest.map(leaf).join('')}</div></li>`;
   h+='</ul></div></li>'});
  const gl=it=>`<div class="leaf"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="arr">▸</span><span class="t">${esc(it.name)}</span>${it.us?'<span class="b us">MỸ</span>':''}${it.badges.map(b=>'<span class="b bk">'+esc(b)+'</span>').join('')}</div><div class="det">${it.lines.map(l=>`<div><b>${esc(l[0])}:</b> ${esc(l[1])}</div>`).join('')||'<div class="sub">Chưa có thêm thông tin</div>'}</div></div>`;
- D.extra.forEach(g=>{const l=g.items.filter(it=>(!st.us||it.us)&&(!st.bk||it.booked)&&(!st.cat)&&match([it.name,it.lines.map(x=>x[1]).join(' ')].join(' '),it.dc));if(!l.length)return;
+ D.extra.forEach(g=>{const l=g.items.filter(it=>(!st.us||it.us)&&(!st.bk||it.booked)&&(!st.cat)&&match([g.title,it.name,it.badges.join(' '),it.lines.map(x=>x[1]).join(' ')].join(' '),it.dc));if(!l.length)return;
   h+=`<li class="node cat ${g.cls} open"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="arr">▸</span><span class="t">${esc(g.title)}</span><span class="b" style="background:#fff;color:#111">${l.length}</span></div><div class="kids"><ul>${l.map(gl).join('')}</ul></div></li>`});
  const nd=D.rank.filter(x=>!x.stt&&(!st.us||x.all.us>0)&&match(x.label,Object.keys(x.dn)));
  if(nd.length)h+=`<li class="node cat p open"><div class="hd" onclick="this.parentNode.classList.toggle('open')"><span class="arr">▸</span><span class="t">Có trong Booking Plan 2026 nhưng CHƯA có trong danh bạ</span><span class="b" style="background:#fff;color:#111">${nd.length}</span></div><div class="kids"><ul>${nd.map(x=>`<div class="leaf"><div class="hd"><span class="t">${esc(x.label)}</span>${x.all.us?'<span class="b us">MỸ</span>':''}${x.tags.map(t=>'<span class="b bk">'+esc(t)+'</span>').join('')}<span class="b bk">${x.all.lots} lô · ${fmt(x.all.cw)} kg</span><span class="sub">gần nhất ${x.all.last}</span></div></div>`).join('')}</ul></div></li>`;
